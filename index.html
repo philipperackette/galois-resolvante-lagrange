@@ -1,0 +1,197 @@
+<!doctype html>
+<html lang="fr"><head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width,initial-scale=1">
+<title>Résolvante de Lagrange</title>
+<style>
+:root{--bg:#0e1a44;--panel:#fbfaf4;--ink:#171717;--teal:#0f5b55;--garnet:#8a1d2c;--blue:#1d4f91;--gold:#c79b2b;--muted:#667;--line:#d8d2c4}
+*{box-sizing:border-box}body{margin:0;font-family:system-ui,-apple-system,Segoe UI,Roboto,Arial,sans-serif;background:#f3f1ea;color:var(--ink)}
+header{background:var(--bg);color:white;padding:18px 24px;border-bottom:5px solid var(--gold)}
+header h1{margin:0;font-size:1.55rem;font-weight:650}header p{margin:.35rem 0 0;opacity:.9}
+main{padding:20px;max-width:1180px;margin:0 auto}
+.grid{display:grid;grid-template-columns:repeat(auto-fit,minmax(320px,1fr));gap:16px}
+.panel{background:var(--panel);border:1px solid var(--line);border-radius:12px;padding:16px;box-shadow:0 2px 10px #0001}
+.panel h2{margin:.1rem 0 1rem;font-size:1.1rem;color:var(--teal)}
+.controls{display:flex;gap:12px;flex-wrap:wrap;align-items:end;margin-bottom:12px}
+.control{display:flex;flex-direction:column;gap:4px}
+label{font-weight:600;font-size:.92rem}
+input,select,button{font:inherit;border:1px solid #bbb;border-radius:8px;padding:7px 9px;background:white}
+button{background:var(--teal);color:white;border-color:var(--teal);cursor:pointer}
+.note{font-size:.92rem;color:#444;line-height:1.55}
+.small{font-size:.86rem;color:#555}
+.mono{font-family:ui-monospace,SFMono-Regular,Menlo,Consolas,monospace}
+.info{border-left:4px solid var(--blue);padding:10px 12px;background:#f5f9ff;margin:10px 0;border-radius:0 8px 8px 0}
+.ok{border-left-color:var(--teal);background:#f0f9f7}
+.row{margin:.5rem 0;padding:.65rem .85rem;background:white;border:1px solid var(--line);border-radius:8px;line-height:1.7}
+.row .label{display:inline-block;min-width:65px;color:var(--teal);font-weight:600;vertical-align:top}
+.formula{font-size:1.02rem;line-height:1.55}
+.tag{display:inline-block;font-size:.78rem;background:#888;color:white;padding:1px 7px;border-radius:4px;margin-left:6px;vertical-align:middle}
+.tag.gold{background:var(--gold)}
+.linkbar{margin-top:12px;font-size:.86rem;color:#555}
+</style>
+</head><body>
+<header><h1>Résolvante de Lagrange</h1><p>La construction qui transforme une action cyclique en multiplication par une racine de l'unité.</p></header>
+<main>
+
+<section class="panel">
+  <p class="note">
+  Soit \(L/K\) une extension cyclique de degré \(n\), engendrée par un automorphisme \(\sigma\). On suppose que \(K\) contient une racine primitive \(n\)-ième de l'unité \(\zeta_n\). Pour tout \(\beta\in L\) et tout \(k\in\{0,1,\dots,n-1\}\), la <b>résolvante de Lagrange</b> d'ordre \(k\) est :
+  </p>
+  <p class="formula" style="font-size:1.06rem;text-align:center;margin:.5rem 0">
+  &Lambda;<sub>k</sub>(&beta;) &nbsp;=&nbsp; &beta; &nbsp;+&nbsp; &zeta;<sub>n</sub><sup>&minus;k</sup>&middot;&sigma;(&beta;) &nbsp;+&nbsp; &zeta;<sub>n</sub><sup>&minus;2k</sup>&middot;&sigma;<sup>2</sup>(&beta;) &nbsp;+&nbsp; &middot;&middot;&middot; &nbsp;+&nbsp; &zeta;<sub>n</sub><sup>&minus;(n&minus;1)k</sup>&middot;&sigma;<sup>n&minus;1</sup>(&beta;)
+  </p>
+  <p class="note">
+  <b>Propriété fondamentale.</b>&nbsp; <span class="mono">&sigma;(&Lambda;<sub>k</sub>(&beta;)) = &zeta;<sub>n</sub><sup>k</sup> &middot; &Lambda;<sub>k</sub>(&beta;)</span>. La résolvante est donc un vecteur propre de &sigma; pour la valeur propre &zeta;<sub>n</sub><sup>k</sup>. En particulier, &Lambda;<sub>k</sub>(&beta;)<sup>n</sup> est fixé par toute la galois, donc appartient à K. C'est ce qui fait apparaître les radicaux dans les formules de résolution.
+  </p>
+  <div class="controls">
+    <div class="control">
+      <label for="n">Degré n</label>
+      <select id="n">
+        <option value="2">n = 2 (degré 2)</option>
+        <option value="3" selected>n = 3 (formule de Cardan)</option>
+        <option value="4">n = 4 (méthode de Ferrari)</option>
+        <option value="5">n = 5 (le mur quintique)</option>
+      </select>
+    </div>
+    <div class="control">
+      <label for="beta">Élément &beta;</label>
+      <select id="beta">
+        <option value="0" selected>&beta; = &alpha;<sub>1</sub></option>
+        <option value="1">&beta; = &alpha;<sub>2</sub></option>
+      </select>
+    </div>
+  </div>
+  <p class="small">L'automorphisme &sigma; agit cycliquement sur les racines : &alpha;<sub>1</sub> &rarr; &alpha;<sub>2</sub> &rarr; &middot;&middot;&middot; &rarr; &alpha;<sub>n</sub> &rarr; &alpha;<sub>1</sub>.</p>
+</section>
+
+<section class="grid">
+
+<div class="panel">
+  <h2>Les n résolvantes</h2>
+  <div id="resolvantes"></div>
+</div>
+
+<div class="panel">
+  <h2>Action de &sigma;</h2>
+  <p class="small">La valeur propre est &zeta;<sub>n</sub><sup>k</sup>, donc la puissance n-ième est fixée par &sigma;, et appartient à K.</p>
+  <div id="actions"></div>
+</div>
+
+</section>
+
+<section class="panel" id="cardanPanel" style="display:none">
+  <h2>Lien avec Cardan (n = 3)</h2>
+  <p class="note">
+  Pour n = 3, on note <span class="mono">j = e<sup>2i&pi;/3</sup></span>. La résolvante d'ordre 0 est la somme des racines, opposée du coefficient sous-dominant, donc rationnelle. Les deux résolvantes non triviales sont :
+  </p>
+  <p class="formula" style="text-align:center;font-size:1.04rem">
+  u = &alpha;<sub>1</sub> + j<sup>2</sup>&alpha;<sub>2</sub> + j &alpha;<sub>3</sub> &nbsp;=&nbsp; &Lambda;<sub>1</sub>(&alpha;<sub>1</sub>),<br>
+  v = &alpha;<sub>1</sub> + j &alpha;<sub>2</sub> + j<sup>2</sup>&alpha;<sub>3</sub> &nbsp;=&nbsp; &Lambda;<sub>2</sub>(&alpha;<sub>1</sub>).
+  </p>
+  <p class="note">
+  Comme &sigma;(u) = j&middot;u, on a &sigma;(u<sup>3</sup>) = j<sup>3</sup>&middot;u<sup>3</sup> = u<sup>3</sup> : u<sup>3</sup> est fixé par &sigma;, donc rationnel. De même pour v<sup>3</sup>. On extrait u et v par racines cubiques, puis on récupère les &alpha;<sub>i</sub> par combinaisons linéaires de u, v et &alpha;<sub>1</sub>+&alpha;<sub>2</sub>+&alpha;<sub>3</sub>. C'est exactement le mécanisme de la formule de Cardan.
+  </p>
+</section>
+
+<section class="panel">
+  <h2>Pourquoi cela mène au lemme de Kummer</h2>
+  <p class="note">
+  Posons &alpha; = &Lambda;<sub>1</sub>(&beta;). Alors &sigma;(&alpha;) = &zeta;<sub>n</sub>&middot;&alpha;, donc &sigma;(&alpha;<sup>n</sup>) = &zeta;<sub>n</sub><sup>n</sup>&middot;&alpha;<sup>n</sup> = &alpha;<sup>n</sup>. L'élément <span class="mono">a := &alpha;<sup>n</sup></span> est fixé par toute la galois, donc <span class="mono">a &isin; K</span>. On obtient alors <span class="mono">L = K(&alpha;)</span> avec <span class="mono">&alpha;<sup>n</sup> = a &isin; K</span> : c'est une extension par radical. La résolvante est la formule explicite qui réalise le <b>lemme de Kummer cyclique</b>.
+  </p>
+</section>
+
+<div class="linkbar">Applet statique HTML/JS pur. Déployable tel quel sur GitHub Pages.</div>
+</main>
+
+<script>
+const $=id=>document.getElementById(id);
+
+// Affichage symbolique de zeta_n^e en forme normale (entree e quelconque)
+function zetaPow(n, e){
+  e = ((e % n) + n) % n;
+  if(e === 0) return '1';
+  if(n === 2 && e === 1) return '\u22121'; // -
+  if(n === 3 && e === 1) return 'j';
+  if(n === 3 && e === 2) return 'j<sup>2</sup>';
+  if(n === 4 && e === 1) return 'i';
+  if(n === 4 && e === 2) return '\u22121';
+  if(n === 4 && e === 3) return '\u2212i';
+  return '&zeta;<sub>'+n+'</sub><sup>'+e+'</sup>';
+}
+
+function alphaSym(j){
+  return '&alpha;<sub>'+(j+1)+'</sub>';
+}
+
+// Construit l'expression de Lambda_k(alpha_{betaIdx+1}) sous forme symbolique
+function buildResolvante(n, betaIdx, k){
+  const terms = [];
+  for(let j = 0; j < n; j++){
+    const coefExp = ((-j * k) % n + n) % n;
+    const targetIdx = (betaIdx + j) % n;
+    const coefStr = zetaPow(n, coefExp);
+    let term;
+    if(coefStr === '1'){
+      term = alphaSym(targetIdx);
+    } else if(coefStr === '\u22121'){
+      // signe -
+      term = '\u2212 ' + alphaSym(targetIdx);
+    } else if(coefStr === '\u2212i'){
+      term = '\u2212 i&middot;' + alphaSym(targetIdx);
+    } else {
+      term = coefStr + '&middot;' + alphaSym(targetIdx);
+    }
+    terms.push(term);
+  }
+  let result = '';
+  for(let i = 0; i < terms.length; i++){
+    const t = terms[i];
+    if(i === 0){
+      result += t;
+    } else if(t.startsWith('\u2212 ')){
+      result += ' \u2212 ' + t.slice(2);
+    } else {
+      result += ' + ' + t;
+    }
+  }
+  return result;
+}
+
+function render(){
+  const n = parseInt($('n').value);
+  const betaIdx = parseInt($('beta').value);
+  const resBox = $('resolvantes');
+  const actBox = $('actions');
+  const rows = [];
+  const acts = [];
+  for(let k = 0; k < n; k++){
+    const expr = buildResolvante(n, betaIdx, k);
+    let tag = '';
+    if(k === 0) tag = '<span class="tag">trace</span>';
+    rows.push(
+      '<div class="row"><span class="label">&Lambda;<sub>'+k+'</sub>(&beta;) =</span> '+
+      '<span class="formula">'+expr+'</span>'+tag+'</div>'
+    );
+    const eigen = zetaPow(n, k);
+    let actStr;
+    if(eigen === '1'){
+      actStr = '&Lambda;<sub>'+k+'</sub>(&beta;)';
+    } else {
+      actStr = eigen + ' &middot; &Lambda;<sub>'+k+'</sub>(&beta;)';
+    }
+    acts.push(
+      '<div class="row"><span class="label">&sigma;(&Lambda;<sub>'+k+'</sub>) =</span> '+
+      '<span class="formula">'+actStr+'</span>'+
+      '<div class="small" style="margin-top:4px">donc &sigma;(&Lambda;<sub>'+k+'</sub><sup>'+n+'</sup>) = &Lambda;<sub>'+k+'</sub><sup>'+n+'</sup> : appartient à K.</div></div>'
+    );
+  }
+  resBox.innerHTML = rows.join('');
+  actBox.innerHTML = acts.join('');
+  $('cardanPanel').style.display = (n === 3) ? 'block' : 'none';
+}
+
+$('n').addEventListener('change', render);
+$('beta').addEventListener('change', render);
+render();
+</script>
+</body></html>
